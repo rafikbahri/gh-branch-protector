@@ -1,0 +1,36 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+gh auth status -h github.com
+
+show_usage() {
+    echo "\n\n"
+    echo "Usage: protect-branch -o OWNER -r REPO -b BRANCH"
+    echo
+    echo "Options:"
+    echo "  -o OWNER    GitHub owner (user or organization)"
+    echo "  -r REPO     Repository name"
+    echo "  -b BRANCH   Branch name to protect"
+    echo "  -h          Show this help message"
+    exit 1
+}
+
+# read arguments
+while getopts "o:r:b:h" opt; do
+    case $opt in
+        o) OWNER="$OPTARG";;
+        r) REPO="$OPTARG";;
+        b) BRANCH="$OPTARG";;
+        h) show_usage;;
+    esac
+done
+
+REQUEST_URI="/repos/$OWNER/$REPO/rulesets"
+CONFIG="config/protect-branch.json"
+
+# create rule set to protect branch
+gh api --method POST ${REQUEST_URI} --input ${CONFIG}
+
+# verify 
+gh api ${REQUEST_URI}
